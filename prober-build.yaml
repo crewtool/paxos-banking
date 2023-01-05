@@ -1,0 +1,9 @@
+steps:
+- name: "gcr.io/cloud-builders/docker"
+  args:
+  - build
+  - "--tag=europe-central2-docker.pkg.dev/$PROJECT_ID/banking-repo/banking-prober"
+  - "--file=Dockerfile_prober"
+  - .
+images:
+- "europe-central2-docker.pkg.dev/$PROJECT_ID/banking-repo/banking-prober"

@@ -67,8 +67,6 @@ echo "Creating repository..."
 gcloud artifacts repositories create banking-repo --project=$project_id --repository-format=docker --location=$region --description="Banking service docker repository"
 
 echo "Building images..."
-#gcloud builds submit --tag $region-docker.pkg.dev/$project_id/banking-repo/banking-node .
-#gcloud builds submit --tag $region-docker.pkg.dev/$project_id/banking-repo/banking-prober prober
 gcloud builds submit --config prober-build.yaml .
 gcloud builds submit --config node-build.yaml .
 
@@ -76,25 +74,17 @@ echo "Firestore creation..."
 gcloud app create --region $region
 gcloud firestore databases create --region $region 
 
+echo "Generating kubernetes resources from tempaltes..."
+for n in {1..3}
+do
+    jinja2 templates/banking.tmpl -D project_id=$project_id -D number=$n > k8s/ban-$n.yaml
+done
+jinja2 templates/prober.tmpl -D project_id=$project_id -D number=$n > k8s/prober.yaml
 
-# jinja2 templates/banking.tmpl -D project_id=projirio3 -D number=2 > k8s/ban-2.yaml
-
-
-#echo "K8s creation..."
-#gcloud container clusters create-auto banking-cluster  --region europe-central2
-#kubectl create secret generic banking-key --from-file=key.json=bankingkey.json
-#kubectl create serviceaccount banking-sa
- kubectl apply -f k8s/manage-services-role.yaml
+echo "Creating K8s resources..."
+gcloud container clusters create-auto banking-cluster  --region europe-central2
+kubectl create secret generic banking-key --from-file=key.json=bankingkey.json
+kubectl create serviceaccount banking-sa
+kubectl apply -f k8s/manage-services-role.yaml
 kubectl create rolebinding manage-serives-bind  --clusterrole=manage-services-role     --serviceaccount=default:banking-sa
-
-
-#echo "Creating K8s resources..."
-
-
-
-kubectl apply -f service.yaml
-kubectl apply -f deptest.yaml
-kubectl apply -f testscv.yaml
-kubectl apply -f dep1.yaml
-
-
+kubectl apply -f k8s
