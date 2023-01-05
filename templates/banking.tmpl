@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: banking-1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: banking-1
+  template:
+    metadata:
+      labels:
+        app: banking-1
+    spec:
+      volumes:
+      - name: google-cloud-key
+        secret:
+          secretName: banking-key
+      containers:
+      - name: banking-container
+        image: europe-central2-docker.pkg.dev/$PROJECT_ID/banking-repo/banking-node:latest
+        ports:
+        - containerPort: 8080
+        env:
+          - name: PORT
+            value: "8080"
+          - name: GOOGLE_APPLICATION_CREDENTIALS
+            value: /var/secrets/google/key.json
+        volumeMounts:
+        - name: google-cloud-key
+          mountPath: /var/secrets/google
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: banking-svc-1
+spec:
+  selector:
+    app: banking-1
+  ports:
+  - port: 80
+    targetPort: 8080
+---
