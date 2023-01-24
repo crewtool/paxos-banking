@@ -5,11 +5,11 @@ import os
 
 app = Quart(__name__)
 
+NODE_ID = int(os.environ["NODE_ID"])
 NODES_COUNT = int(os.environ["NODES_COUNT"])
 PAXOS_PREFIX = "banking-paxos-"
 NODES = [PAXOS_PREFIX + i for i in range(1, NODES_COUNT + 1)]
 QUORUM = NODES_COUNT // 2 + 1
-node_id = 0
 
 round_id = -1
 leader_election = None
@@ -72,10 +72,9 @@ class LeaderElection:
 async def elect_new_leader():
 	global round_id
 	global leader_election
-	global node_id
 	json = await request.get_json()
 	round_id = json["round_id"]
-	leader_election = LeaderElection(round_id, node_id, 5.)
+	leader_election = LeaderElection(round_id, NODE_ID, 5.)
 	return await leader_election.propose_self()
 
 @app.route("/leader_proposal", methods=["POST"])

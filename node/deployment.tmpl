@@ -38,15 +38,10 @@ spec:
           env:
             - name: PORT
               value: "8000"
-            - name: GOOGLE_APPLICATION_CREDENTIALS
-              value: /var/secrets/google/key.json
-            - name: HOSTNAME
-              value: "banking-{{ number }}"
+            - name: NODE_ID
+              value: "{{ number }}"
             - name: NODES_COUNT
               value: {{ count }}
-          volumeMounts:
-            - name: google-cloud-key
-              mountPath: /var/secrets/google
 ---
 apiVersion: v1
 kind: Service
