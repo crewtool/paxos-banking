@@ -27,12 +27,8 @@ round_id = -1
 def initialize():
 	accounts_ref = db.collection("accounts")
 	account_ref = accounts_ref.document("prober")
-	leader_ref = accounts_ref.document("leader")
 	if not account_ref.get().exists:
 		accounts_ref.document("prober").set({"balance": 0})
-
-	if not leader_ref.get().exists:
-		accounts_ref.document("leader").set({"selector": SELECTOR_PREFIX + "-1", "is_selector_set": True})
 
 def update_selector(selector, service_name, namespace):
 	new_selector = {"app": selector}
@@ -49,30 +45,14 @@ def run_paxos():
 	return SELECTOR_PREFIX + "-" + str(selector_num)
 
 def healthcheck():
-	accounts_ref = db.collection("accounts")
-	leader_ref = accounts_ref.document("leader")
-	doc = leader_ref.get()
-	selector = doc.get("selector")
-
-	if selector == "ERROR":
-		new_selector = run_paxos()
-		accounts_ref.document("leader").set({"selector": new_selector, "is_selector_set": True})
-		return "Paxos run"
-
-	if not doc.get("is_selector_set"):
-		update_selector(selector, SERVICE_NAME, NAMESPACE)
-		accounts_ref.document("leader").set({"selector": selector, "is_selector_set": True})
-
 	try:
 		response = requests.post('http://' + SERVICE_NAME + '/add_money', json={"account_id": "prober", "amount": 1},
 								 timeout=5)
 	except Timeout:
-		new_selector = run_paxos()
-		accounts_ref.document("leader").set({"selector": new_selector, "is_selector_set": False})
+		run_paxos()
 		return "Timeout has been raised.."
 	except ConnectionError:
-		new_selector = run_paxos()
-		accounts_ref.document("leader").set({"selector": new_selector, "is_selector_set": False})
+		run_paxos()
 		return "Connection error"
 	except RequestException:
 		time.sleep(1)
@@ -81,7 +61,6 @@ def healthcheck():
 								 timeout=5)
 
 	if response.status_code != 200:
-		accounts_ref.document("leader").set({"selector": "ERROR", "is_selector_set": False})
 		run_paxos()
 
 	return "Health checking..."
