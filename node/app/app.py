@@ -1,11 +1,11 @@
-import os
-import time
-import subprocess
-import google.auth
-import uuid
-from google.cloud import firestore
 from flask import Flask, request, jsonify, render_template
-
+import google.auth
+from google.cloud import firestore
+import os
+import requests
+import subprocess
+import time
+import uuid
 
 # Set up the Firestore client
 credentials, project = google.auth.default()
@@ -13,6 +13,7 @@ db = firestore.Client(project=project, credentials=credentials)
 transaction = db.transaction()
 
 app = Flask(__name__)
+
 SLEEP_TIME = int(os.environ.get('SLEEP_TIME', 20))
 HOSTNAME = os.environ.get('HOSTNAME', 'NO INFO')
 
@@ -137,6 +138,13 @@ def add_money_endpoint():
 	amount = data["amount"]
 	result = add_money(account_id, amount)
 	return jsonify({"result": result})
+
+@app.route("/elect_new_leader", methods=["POST"])
+def elect_new_leader():
+	data = request.get_json()
+	round_id = data["round_id"]
+	response = requests.post('http://localhost:8000/elect_new_leader', json={"round_id": round_id}, timeout=60)
+	return response
 
 @app.route("/shutdown", methods=["POST"])
 def shutdown():

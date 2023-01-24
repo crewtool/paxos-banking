@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prober
+spec:
+  selector:
+    matchLabels:
+      app: prober
+  template:
+    metadata:
+      labels:
+        app: prober
+    spec:
+      serviceAccountName: banking-sa
+      volumes:
+        - name: google-cloud-key
+          secret:
+            secretName: banking-key
+      containers:
+        - name: banking-container
+          image: europe-central2-docker.pkg.dev/{{ project_id }}/banking-repo/prober:latest
+          env:
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /var/secrets/google/key.json
+          volumeMounts:
+            - name: google-cloud-key
+              mountPath: /var/secrets/google
+---

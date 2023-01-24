@@ -1,7 +1,3 @@
 google-cloud-firestore
 Flask
 gunicorn
-kubernetes
-schedule
-aiohttp
-quart

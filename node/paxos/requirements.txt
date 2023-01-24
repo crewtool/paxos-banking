@@ -1,0 +1,6 @@
+google-cloud-firestore
+gunicorn
+uvicorn
+kubernetes
+aiohttp
+quart

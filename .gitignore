@@ -129,3 +129,5 @@ dmypy.json
 .pyre/
 
 bankingkey.json
+k8s/prober.yaml
+k8s/node-*.yaml

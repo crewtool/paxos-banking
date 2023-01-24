@@ -1,0 +1,20 @@
+steps:
+- name: "gcr.io/cloud-builders/docker"
+  args:
+  - "build"
+  - "--tag=europe-central2-docker.pkg.dev/$PROJECT_ID/banking-repo/node-app"
+  - "node/app"
+- name: "gcr.io/cloud-builders/docker"
+  args:
+  - "build"
+  - "--tag=europe-central2-docker.pkg.dev/$PROJECT_ID/banking-repo/node-paxos"
+  - "node/paxos"
+- name: "gcr.io/cloud-builders/docker"
+  args:
+  - "build"
+  - "--tag=europe-central2-docker.pkg.dev/$PROJECT_ID/banking-repo/prober"
+  - "prober"
+images:
+- "europe-central2-docker.pkg.dev/$PROJECT_ID/banking-repo/node-app"
+- "europe-central2-docker.pkg.dev/$PROJECT_ID/banking-repo/node-paxos"
+- "europe-central2-docker.pkg.dev/$PROJECT_ID/banking-repo/prober"

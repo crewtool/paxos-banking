@@ -1,12 +1,14 @@
 import asyncio
 import aiohttp
 from quart import Quart, jsonify, request
+import os
 
 app = Quart(__name__)
 
-# TODO: uzupełnić brakujące dane
-nodes = []
-quorum = len(nodes) // 2 + 1
+NODES_COUNT = int(os.environ["NODES_COUNT"])
+PAXOS_PREFIX = "banking-paxos-"
+NODES = [PAXOS_PREFIX + i for i in range(1, NODES_COUNT + 1)]
+QUORUM = NODES_COUNT // 2 + 1
 node_id = 0
 
 round_id = -1
@@ -21,17 +23,17 @@ class LeaderElection:
 		self.accepted = None
 
 	async def propose_self(self):
-		proposal_id = self.node_id - len(nodes)
+		proposal_id = self.node_id - NODES_COUNT
 		while True:
-			proposal_id += len(nodes)
+			proposal_id += NODES_COUNT
 			proposal = {"round_id": self.round_id, "proposal_id": proposal_id}
 			async with aiohttp.ClientSession() as session:
 				promises = await asyncio.gather(*[
 					post(session, "http://" + node + "/leader_proposal", json=proposal, timeout=self.timeout)
-					for node in nodes
+					for node in NODES
 				])
 				promises = list(filter(lambda x: x is not None, promises))
-				if len(promises) < quorum:
+				if len(promises) < QUORUM:
 					continue
 
 				accepted_id = -1
@@ -45,10 +47,10 @@ class LeaderElection:
 				accept_request = {"round_id": self.round_id, "proposal_id": self.proposal_id, "node_id": accepted_node}
 				accepts = await asyncio.gather(*[
 					post(session, "http://" + node + "/leader_request", json=accept_request, timeout=self.timeout)
-					for node in nodes
+					for node in NODES
 				])
 				accepts = list(filter(lambda x: x is not None, accepts))
-				if len(accepts) < quorum:
+				if len(accepts) < QUORUM:
 					continue
 
 				return accepted_node
