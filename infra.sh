@@ -1,5 +1,11 @@
 #!/bin/bash
 
+project_id=$(gcloud config get-value project --verbosity none)
+if [ -z "$project_id" ]; then
+  echo "No project id."
+  exit 1
+fi
+
 echo "Building images..."
 gcloud builds submit --config build.yaml .
 
