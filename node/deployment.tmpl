@@ -1,16 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: banking-{{ number }}
+  name: node-{{ number }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: banking-{{ number }}
+      app: node
+      id: "{{ number }}"
   template:
     metadata:
       labels:
-        app: banking-{{ number }}
+        app: node
+        id: "{{ number }}"
     spec:
       volumes:
         - name: google-cloud-key
@@ -26,8 +28,8 @@ spec:
               value: "8080"
             - name: GOOGLE_APPLICATION_CREDENTIALS
               value: /var/secrets/google/key.json
-            - name: HOSTNAME
-              value: "banking-{{ number }}"
+            - name: NODE_ID
+              value: "{{ number }}"
           volumeMounts:
             - name: google-cloud-key
               mountPath: /var/secrets/google
@@ -46,10 +48,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: banking-paxos-{{ number }}
+  name: node-paxos-{{ number }}
 spec:
   selector:
-    app: banking-{{ number }}
+    app: node
+    id: "{{ number }}"
   ports:
     - port: 80
       targetPort: 8000

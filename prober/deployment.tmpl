@@ -17,7 +17,7 @@ spec:
           secret:
             secretName: banking-key
       containers:
-        - name: banking-container
+        - name: prober
           image: europe-central2-docker.pkg.dev/{{ project_id }}/banking-repo/prober:latest
           env:
             - name: GOOGLE_APPLICATION_CREDENTIALS

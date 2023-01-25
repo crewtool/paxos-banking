@@ -1,16 +1,13 @@
 # Use the official lightweight Python image.
 # https://hub.docker.com/_/python
-FROM python:3.7-slim
+FROM python:3.9-slim
 
-# Copy local code to the container image.
 ENV APP_HOME /app
 WORKDIR $APP_HOME
 
-COPY . ./
-
-ENV APP_HOME /app
-
-# Install production dependencies.
+COPY ./requirements.txt ./
 RUN pip install -r requirements.txt
+
+COPY . ./
 
 CMD [ "python3", "prober.py" ]

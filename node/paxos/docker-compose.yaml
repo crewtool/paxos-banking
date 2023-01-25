@@ -1,0 +1,32 @@
+version: "3.9"
+services:
+  node-paxos-1:
+    container_name: "banking-node-paxos-1"
+    build: .
+    image: banking-node-paxos
+    ports:
+      - "81:80"
+    environment:
+      PORT: "80"
+      NODE_ID: "1"
+      NODES_COUNT: "3"
+  node-paxos-2:
+    container_name: "banking-node-paxos-2"
+    build: .
+    image: banking-node-paxos
+    ports:
+      - "82:80"
+    environment:
+      PORT: "80"
+      NODE_ID: "2"
+      NODES_COUNT: "3"
+  node-paxos-3:
+    container_name: "banking-node-paxos-3"
+    build: .
+    image: banking-node-paxos
+    ports:
+      - "83:80"
+    environment:
+      PORT: "80"
+      NODE_ID: "3"
+      NODES_COUNT: "3"

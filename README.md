@@ -149,7 +149,8 @@ jinja2 - the command line tool for creating files from jinja2 templates. Used fo
 ### Steps
 ```bash
 gcloud auth login 
-./infras.sh <OPTIONAL project_id>
+./infra-init.sh <OPTIONAL project_id>
+./infra.sh
 ```
 
 ### Teardown

@@ -4,18 +4,16 @@ from google.cloud import firestore
 import os
 import requests
 import subprocess
-import time
 import uuid
+
+app = Flask(__name__)
+
+NODE_ID = int(os.environ["NODE_ID"])
 
 # Set up the Firestore client
 credentials, project = google.auth.default()
 db = firestore.Client(project=project, credentials=credentials)
 transaction = db.transaction()
-
-app = Flask(__name__)
-
-SLEEP_TIME = int(os.environ.get('SLEEP_TIME', 20))
-HOSTNAME = os.environ.get('HOSTNAME', 'NO INFO')
 
 @app.route('/')
 def front():
@@ -28,7 +26,7 @@ def front():
 	return render_template(
 		'index.tmpl',
 		rows=rows,
-		leader=HOSTNAME
+		leader=NODE_ID
 	)
 
 # Banking system
@@ -143,8 +141,8 @@ def add_money_endpoint():
 def elect_new_leader():
 	data = request.get_json()
 	round_id = data["round_id"]
-	response = requests.post('http://localhost:8000/elect_new_leader', json={"round_id": round_id}, timeout=60)
-	return response
+	response = requests.post('http://localhost:8000/elect_new_leader', json={"round_id": round_id})
+	return jsonify(response.json())
 
 @app.route("/shutdown", methods=["POST"])
 def shutdown():
@@ -152,5 +150,4 @@ def shutdown():
 	return 'Server shutting down...'
 
 if __name__ == "__main__":
-	time.sleep(SLEEP_TIME)
 	app.run(debug=True, host='0.0.0.0', port=int(os.environ.get('PORT', 8080)))
