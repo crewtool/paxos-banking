@@ -24,7 +24,7 @@ def initialize():
 	accounts_ref = db.collection("accounts")
 	account_ref = accounts_ref.document("prober")
 	if not account_ref.get().exists:
-		accounts_ref.document("prober").set({"balance": 0})
+		accounts_ref.document("prober").set({"balance": 0.0})
 
 def update_selector(selector, service_name, namespace):
 	new_selector = {"id": selector}

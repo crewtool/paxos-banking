@@ -62,7 +62,7 @@ def open_account():
 	account_id = str(uuid.uuid4())
 	# Create the new account in Firestore
 	doc_ref = db.collection("accounts").document(account_id)
-	doc_ref.set({"balance": 0})
+	doc_ref.set({"balance": 0.0})
 	return account_id
 
 def move_money(from_account_id, to_account_id, amount):
@@ -123,10 +123,10 @@ def open_account_endpoint():
 @app.route("/move_money", methods=["POST"])
 def move_money_endpoint():
 	data = request.get_json()
-	from_account_id = data["from_account_id"]
-	to_account_id = data["to_account_id"]
+	source = data["source"]["account_id"]
+	destination = data["destination"]["account_id"]
 	amount = data["amount"]
-	result = move_money(from_account_id, to_account_id, amount)
+	result = move_money(source, destination, amount)
 	return jsonify({"result": result})
 
 @app.route("/add_money", methods=["POST"])
