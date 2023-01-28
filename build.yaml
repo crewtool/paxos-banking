@@ -14,7 +14,14 @@ steps:
   - "build"
   - "--tag=europe-central2-docker.pkg.dev/$PROJECT_ID/banking-repo/prober"
   - "prober"
+- name: "gcr.io/cloud-builders/docker"
+  args:
+  - "build"
+  - "--tag=europe-west2-docker.pkg.dev/$PROJECT_ID/banking-repo/shutdown"
+  - "shutdown"
 images:
 - "europe-central2-docker.pkg.dev/$PROJECT_ID/banking-repo/node-app"
 - "europe-central2-docker.pkg.dev/$PROJECT_ID/banking-repo/node-paxos"
 - "europe-central2-docker.pkg.dev/$PROJECT_ID/banking-repo/prober"
+- "europe-central2-docker.pkg.dev/$PROJECT_ID/banking-repo/shutdown"
+

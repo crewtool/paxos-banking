@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shutdown
+spec:
+  selector:
+    matchLabels:
+      app: shutdown
+  template:
+    metadata:
+      labels:
+        app: shutdown
+    spec:
+      serviceAccountName: banking-sa
+      volumes:
+        - name: google-cloud-key
+          secret:
+            secretName: banking-key
+      containers:
+        - name: prober
+          image: europe-west2-docker.pkg.dev/{{ project_id }}/banking-repo/shutdown:latest
+          env:
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /var/secrets/google/key.json
+          volumeMounts:
+            - name: google-cloud-key
+              mountPath: /var/secrets/google
+---
