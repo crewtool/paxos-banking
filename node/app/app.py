@@ -217,7 +217,8 @@ def learn_banking_operation():
 
 @app.route("/check_account", methods=["GET"])
 def check_account_endpoint():
-	account_id = request.args.get("account_id")
+	json = request.get_json()
+	account_id = json["account_id"]
 	balance = check_account(account_id)
 	return jsonify({"balance": balance})
 

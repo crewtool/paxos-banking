@@ -68,3 +68,8 @@ gcloud artifacts repositories create banking-repo --project=$project_id --reposi
 echo "Firestore creation..."
 gcloud app create --region $region
 gcloud firestore databases create --region $region
+
+echo "Creating venv..."
+python3 -m venv .venv
+source .venv/bin/activate
+pip3 install jinja2-cli

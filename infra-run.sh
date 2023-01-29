@@ -16,6 +16,7 @@ if [ -z "$count" ]; then
 fi
 
 echo "Generating kubernetes resources from templates..."
+source .venv/bin/activate
 rm -rf k8s-apply
 cp -r k8s k8s-apply
 for i in $(seq 1 $count); do
@@ -23,6 +24,7 @@ for i in $(seq 1 $count); do
 done
 jinja2 prober/deployment.tmpl -D project_id=$project_id -D number=$i -D count=$count -D leader_system=$leader_system > k8s-apply/prober.yaml
 jinja2 shutdown/deployment.tmpl -D project_id=$project_id > k8s-apply/shutdown.yaml
+deactivate
 
 echo "Creating K8s resources..."
 gcloud container clusters create-auto banking-cluster --region europe-central2

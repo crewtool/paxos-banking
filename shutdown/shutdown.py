@@ -5,11 +5,11 @@ import google.auth
 
 credentials, project = google.auth.default()
 
-LOADBALANCER_SERVICE_NAME = "node-app-loadbalancer"
+INTERNAL_SERVICE_NAME = "node-app-internal"
 
 def shutdown():
 	print("Shutting down")
-	requests.post('http://' + LOADBALANCER_SERVICE_NAME + '/shutdown')
+	requests.post('http://' + INTERNAL_SERVICE_NAME + '/shutdown')
 
 schedule.every(1200).seconds.do(shutdown)
 
