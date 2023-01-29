@@ -10,7 +10,7 @@ LEADER_SERVICE_NAME = "node-app-leader"
 LOADBALANCER_SERVICE_NAME = "node-app-loadbalancer"
 NAMESPACE = "default"
 HEALTHCHECK_INTERVAL = 30
-LEADER_SYSTEM = bool(os.environ["LEADER_SYSTEM"])
+LEADER_SYSTEM = not (os.environ["LEADER_SYSTEM"] == "False" or os.environ["LEADER_SYSTEM"] == "0")
 
 round_id = -1
 

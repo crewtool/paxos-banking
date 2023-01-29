@@ -16,6 +16,7 @@ if [ -z "$count" ]; then
 fi
 
 echo "Generating kubernetes resources from templates..."
+rm -rf k8s-apply
 cp -r k8s k8s-apply
 for i in $(seq 1 $count); do
   jinja2 node/deployment.tmpl -D project_id=$project_id -D number=$i -D count=$count -D leader_system=$leader_system > k8s-apply/node-$i.yaml

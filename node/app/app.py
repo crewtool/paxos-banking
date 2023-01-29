@@ -16,7 +16,7 @@ NODE_PREFIX = "node-"
 OTHER_NODES = [NODE_PREFIX + str(i) + ":" + PORT for i in range(1, NODES_COUNT + 1) if i != NODE_ID]
 PAXOS_PORT = int(os.environ["PAXOS_PORT"])
 PAXOS_HOST = f"http://localhost:{PAXOS_PORT}"
-LEADER_SYSTEM = bool(os.environ["LEADER_SYSTEM"])
+LEADER_SYSTEM = not (os.environ["LEADER_SYSTEM"] == "False" or os.environ["LEADER_SYSTEM"] == "0")
 
 # Set up the Firestore client
 credentials, project = google.auth.default()
@@ -48,8 +48,7 @@ def check_account(account_id):
 		return "Account not found."
 
 def open_account(data):
-	# Generate a new UUID for the account
-	account_id = str(uuid.uuid4())
+	account_id = data["account_id"]
 
 	# Create the new account in Firestore
 	doc_ref = get_accounts_ref().document(account_id)
@@ -64,7 +63,6 @@ def open_account(data):
 	return jsonify({"account_id": account_id})
 
 def deposit_money(data):
-	data = request.get_json()
 	account_id = data["account_id"]
 	amount = data["amount"]
 
@@ -110,7 +108,6 @@ def withdraw_money(data):
 	return jsonify({"result": result})
 
 def move_money(data):
-	data = request.get_json()
 	source = data["source"]["account_id"]
 	destination = data["destination"]["account_id"]
 	amount = data["amount"]
@@ -139,8 +136,7 @@ def move_money(data):
 	return jsonify({"result": result})
 
 def get_last_operation_id():
-	accounts_ref = get_accounts_ref()
-	return accounts_ref.document("meta").get("last_operation_id")
+	return get_meta_ref().get().get("last_operation_id")
 
 # Endpoints
 
@@ -197,19 +193,19 @@ def do_banking_operation(operation_id, operation):
 def banking_operation(operation):
 	while True:
 		operation_id = get_last_operation_id() + 1
-		uuid = uuid.uuid4()
-		value = {"uuid": uuid, "operation": operation}
+		uuid_marker = str(uuid.uuid4())
+		value = {"uuid": uuid_marker, "operation": operation}
 		res = requests.post(f"{PAXOS_HOST}/paxos_new", json={"round_id": operation_id, "value": value})
 		applied_operation = res.json()
 		response = do_banking_operation(operation_id, applied_operation["operation"])
-		if applied_operation["uuid"] == uuid:
+		if applied_operation["uuid"] == uuid_marker:
 			for node in OTHER_NODES:
 				try:
 					requests.post("http://" + node + "/learn_banking_operation", json={"operation_id": operation_id, "operation": operation}, timeout = 5)
 				except Timeout | RequestException | ConnectionError:
 					pass
 			break
-	return jsonify(response)
+	return response
 
 @app.route("/learn_banking_operation", methods=["POST"])
 def learn_banking_operation():
@@ -227,7 +223,9 @@ def check_account_endpoint():
 
 @app.route("/open_account", methods=["POST"])
 def open_account_endpoint():
-	json = {}
+	# Generate a new UUID for the account
+	account_id = str(uuid.uuid4())
+	json = {"account_id": account_id}
 	if LEADER_SYSTEM:
 		return open_account(json)
 	else:

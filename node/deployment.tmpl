@@ -60,8 +60,10 @@ spec:
     app: node
     id: "{{ number }}"
   ports:
-    - port: 8080
+    - name: app-port
+      port: 8080
       targetPort: 8080
-    - port: 8000
+    - name: paxos-port
+      port: 8000
       targetPort: 8000
 ---

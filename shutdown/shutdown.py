@@ -11,9 +11,9 @@ def shutdown():
 	print("Shutting down")
 	requests.post('http://' + LOADBALANCER_SERVICE_NAME + '/shutdown')
 
-schedule.every(600).seconds.do(shutdown)
+schedule.every(1200).seconds.do(shutdown)
 
-time.sleep(300)
+time.sleep(1200)
 while 1:
 	schedule.run_pending()
 	time.sleep(1)
