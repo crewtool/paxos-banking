@@ -29,4 +29,4 @@ kubectl create secret generic banking-key --from-file=key.json=bankingkey.json
 kubectl create serviceaccount banking-sa
 kubectl apply -f k8s-apply/manage-services-role.yaml
 kubectl create rolebinding manage-serives-bind --clusterrole=manage-services-role --serviceaccount=default:banking-sa
-# kubectl apply -f k8s-apply
+kubectl apply -f k8s-apply
