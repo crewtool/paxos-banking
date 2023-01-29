@@ -2,6 +2,7 @@ import asyncio
 import aiohttp
 from quart import Quart, abort, jsonify, request
 import os
+from random import uniform
 import sys
 
 app = Quart(__name__)
@@ -12,6 +13,7 @@ PAXOS_PREFIX = "node-paxos-"
 NODES = [PAXOS_PREFIX + str(i) for i in range(1, NODES_COUNT + 1)]
 QUORUM = NODES_COUNT // 2 + 1
 GENERAL_TIMEOUT = 5.
+BACKOFF_BASE = 2.
 DEBUG = bool(os.environ.get("DEBUG"))
 
 paxoses = {}
@@ -28,6 +30,7 @@ class Paxos:
 		if self.consensus:
 			return jsonify(self.consensus)
 		proposal_id = NODE_ID - NODES_COUNT
+		backoff = BACKOFF_BASE
 		while True:
 			proposal_id += NODES_COUNT
 			proposal = {"round_id": self.round_id, "proposal_id": proposal_id}
@@ -39,6 +42,8 @@ class Paxos:
 				promises = list(filter(lambda x: x, promises))
 				eprint(f"propose_self promises {promises}")
 				if len(promises) < QUORUM:
+					await asyncio.sleep(uniform(backoff / 2, backoff))
+					backoff *= 2
 					continue
 
 				accepted_id = -1
@@ -57,6 +62,8 @@ class Paxos:
 				accepts = list(filter(lambda x: x, accepts))
 				eprint(f"propose_self accepts {accepts}")
 				if len(accepts) < QUORUM:
+					await asyncio.sleep(uniform(backoff / 2, backoff))
+					backoff *= 2
 					continue
 
 				self.accepted = {"id": self.ignored_ids, "value": accepted_value}
