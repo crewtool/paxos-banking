@@ -21,17 +21,20 @@ We used the well-established HTTP protocol for communication between our microse
 ## System architecture
 
 ![Architecture](./images/architecture.png)
-[TODO] update obrazka i opisu poniżej
 
-In our system, clients communicate with the service by accessing the Kubernetes load balancer and its external IP.
+The main part of our system is composed of nodes which correspond to Kubernetes pods. Each node is composed of two containers: app and paxos. The first is responsible for the core functionality and the second for coordination using Paxos.
 
-If running with leader, the load balancer is configured to forward traffic to the elected leader node, while the other containers serve only as Paxos nodes. When a request is received, the leader container (shown in blue in the above diagram) sends the appropriate request to the Firestore database and then responds to the client. The excellent transaction system in Firestore allows it to handle multiple parallel requests effectively.
+Clients communicate with the nodes by the means of an externally accessible Kubernetes load balancer with its external IP. When running in a leader mode, the load balancer is configured to forward traffic to the elected leader node, while the other containers serve only as Paxos nodes. When running in a leaderless mode, the traffic is distributed to all the nodes.
 
-Otherwise the load balancer forwards traffic to every node. 
+When a request is received, if the node is a leader, it sends the appropriate request to the Firestore database and then responds to the client. If we are running in a leaderless mode, then the node starts a Paxos round to guarantee coordination with other nodes. When the request is accepted by the other Nodes, it is then communicated to the Firestore database as previously.
 
-A prober microservice is scheduled to periodically check the service's functionality by updating its own banking account by 1. If the request fails, it initiates a new leader election process and updates the load balancer to forward traffic to the new leader.
+When running with a leader, there is only one Firebase database collection with which only the leader communicates. When running without a leader, there is a separate collection for each of the nodes, which is kept in sync between them using Paxos.
 
-To access the services, the containers use a key generated for the GCP service account with access to the database. The key is stored as a secret in Kubernetes and is mounted when the pod is started. In our solution, we also used a Kubernetes service account to give the prober pod access to change the load balancer target.
+A prober microservice is scheduled to periodically check the service's functionality by updating its own banking account by 1. If the request fails and we are running with a leader, it uses the internal service to communicate with a live node and initiate a new leader election process and updates the external load balancer to forward traffic to the new leader.
+
+A shutdown microservice periodically shutdowns a random node with which it communicates using the internal service.
+
+To establish access, the containers use a key generated for the GCP service account with access to the database. The key is stored as a secret in Kubernetes and is mounted when the pod is started. In our solution, we also used a Kubernetes service account to give the prober pod access to change the load balancer target.
 
 ## Functionalities
 The banking node pods provide a number of endpoints to serve banking transactions:
@@ -143,12 +146,21 @@ kubectl
 python (venv, pip)
 
 ### Steps
+First initialize and build:
 ```bash
 gcloud auth login 
 ./infra-init.sh <OPTIONAL project_id>
 ./infra-build.sh
+```
+Then run with a leader:
+```bash
 ./infra-run.sh
 ```
+or without:
+```bash
+./infra-run.sh False
+```
+It is also possible to change the number of nodes.
 
 ### Teardown
 ```bash
@@ -156,10 +168,3 @@ gcloud container clusters delete banking-cluster --region europe-central2
 gcloud artifacts repositories delete banking-repo --project=<PROJECT_ID> --location europe-central2
 ```
 Manually delete firestore "account" collections.
-
-
-## Testing and performance
-[TODO]
-
-
-
