@@ -52,9 +52,13 @@ Request Parameters: None
 Response:
 
 account_id: The ID of the created account.
+
 Example Response:
+
 {
-"account_id": <uuid>
+
+"account_id": < uuid >
+
 }
 
 Endpoint: POST /deposit_money
@@ -64,11 +68,17 @@ Description: Deposits money to the account.
 Request Parameters:
 
 account_id: The ID of the account to deposit money to (required).
+
 amount: The amount of money to add (required).
+
 Example Request:
+
 {
-"account_id": <uuid>,
-"amount" : <float>
+
+"account_id": < uuid >,
+
+"amount" : < float >
+
 }
 
 Endpoint: POST /withdraw_money
@@ -78,11 +88,17 @@ Description: Withdraws money from the account.
 Request Parameters:
 
 account_id: The ID of the account to withdraw money from (required).
+
 amount: The amount of money to withdraw (required).
+
 Example Request:
+
 {
-"account_id": <uuid>,
-"amount" : <float>
+
+"account_id": < uuid >,
+
+"amount" : < float >
+
 }
 
 Endpoint: POST /move_money
@@ -92,13 +108,21 @@ Description: Moves money between the accounts.
 Request Parameters:
 
 source: The account to transfer money from (required).
+
 destination: The account to transfer money to (required).
+
 amount: The amount of money to transfer (required).
+
 Example Request:
+
 {
-"source": { "account_id" : <uuid> },
-"destination": { "account_id" : <uuid> },
-"amount" : <float>
+
+"source": { "account_id" : < uuid > },
+
+"destination": { "account_id" : < uuid > },
+
+"amount" : < float >
+
 }
 
 Endpoint: GET /check_account
@@ -108,17 +132,25 @@ Description: Checks the balance of an account.
 Request Parameters:
 
 account_id: The ID of the account to check (required).
+
 Example Request:
+
 {
-"account_id": <uuid>
+
+"account_id": < uuid >
+
 }
 
 Response:
 
 balance: The balance of the account.
+
 Example Response:
+
 {
-"balance": <float>
+
+"balance": < float >
+
 }
 
 Endpoint: POST /shutdown
