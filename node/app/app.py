@@ -272,7 +272,7 @@ def elect_new_leader():
 def shutdown():
 	requests.post(f"{PAXOS_HOST}/shutdown")
 	subprocess.run(["pkill", "gunicorn"])
-	return "Server shutting down..."
+	return "Server shut down..."
 
 initialize()
 if __name__ == "__main__":
