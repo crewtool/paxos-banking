@@ -69,7 +69,7 @@ def deposit_money(data):
 	doc_ref = get_accounts_ref().document(account_id)
 	meta_ref = get_meta_ref()
 	@firestore.transactional
-	def add_money_transactional(transaction, doc_ref, meta_ref):
+	def deposit_money_transactional(transaction, doc_ref, meta_ref):
 		doc = next(transaction.get(doc_ref))
 		meta = next(transaction.get(meta_ref))
 		transaction.update(meta_ref, {"last_operation_id": meta.get("last_operation_id") + 1})
@@ -80,7 +80,7 @@ def deposit_money(data):
 		else:
 			return "Account not found."
 
-	result = add_money_transactional(db.transaction(), doc_ref, meta_ref)
+	result = deposit_money_transactional(db.transaction(), doc_ref, meta_ref)
 	return jsonify({"result": result})
 
 def withdraw_money(data):

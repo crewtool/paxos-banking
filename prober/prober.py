@@ -56,7 +56,7 @@ def healthcheck_error():
 def healthcheck():
 	while True:
 		try:
-			response = requests.post("http://" + EXTERNAL_SERVICE_NAME + "/add_money",
+			response = requests.post("http://" + EXTERNAL_SERVICE_NAME + "/deposit_money",
 				json={"account_id": "prober", "amount": 1}, timeout=5)
 		except Timeout:
 			healthcheck_error()
