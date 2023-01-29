@@ -56,7 +56,7 @@ def open_account(data):
 	meta_ref = get_meta_ref()
 	@firestore.transactional
 	def open_account_transactional(transaction, doc_ref, meta_ref):
-		meta = transaction.get(meta_ref)
+		meta = next(transaction.get(meta_ref))
 		transaction.update(meta_ref, {"last_operation_id": meta.get("last_operation_id") + 1})
 		transaction.set(doc_ref, {"balance": 0.0})
 
@@ -72,8 +72,8 @@ def deposit_money(data):
 	meta_ref = get_meta_ref()
 	@firestore.transactional
 	def add_money_transactional(transaction, doc_ref, meta_ref):
-		doc = transaction.get(doc_ref)
-		meta = transaction.get(meta_ref)
+		doc = next(transaction.get(doc_ref))
+		meta = next(transaction.get(meta_ref))
 		transaction.update(meta_ref, {"last_operation_id": meta.get("last_operation_id") + 1})
 		if doc.exists:
 			# Update the account balance in Firestore
@@ -93,8 +93,8 @@ def withdraw_money(data):
 	meta_ref = get_meta_ref()
 	@firestore.transactional
 	def withdraw_money_transactional(transaction, doc_ref, meta_ref):
-		doc = transaction.get(doc_ref)
-		meta = transaction.get(meta_ref)
+		doc = next(transaction.get(doc_ref))
+		meta = next(transaction.get(meta_ref))
 		transaction.update(meta_ref, {"last_operation_id": meta.get("last_operation_id") + 1})
 		if doc.exists:
 			if doc.get("balance") >= amount:
@@ -120,9 +120,9 @@ def move_money(data):
 	meta_ref = get_meta_ref()
 	@firestore.transactional
 	def move_money_transactional(transaction, from_doc_ref, to_doc_ref, meta_ref):
-		from_doc = transaction.get(from_doc_ref)
-		to_doc = transaction.get(to_doc_ref)
-		meta = transaction.get(meta_ref)
+		from_doc = next(transaction.get(from_doc_ref))
+		to_doc = next(transaction.get(to_doc_ref))
+		meta = next(transaction.get(meta_ref))
 		transaction.update(meta_ref, {"last_operation_id": meta.get("last_operation_id") + 1})
 		if from_doc.exists and to_doc.exists:
 			if from_doc.get("balance") >= amount:
@@ -150,7 +150,7 @@ def front():
 	docs = collection.get()
 	rows = []
 	for doc in docs:
-		if doc.id != "leader" and doc.id != "prober":
+		if doc.id != "leader" and doc.id != "prober" and doc.id != "meta":
 			rows.append({"account_id": doc.id, **doc.to_dict()})
 	return render_template(
 		'index.tmpl',
@@ -227,7 +227,7 @@ def check_account_endpoint():
 
 @app.route("/open_account", methods=["POST"])
 def open_account_endpoint():
-	json = request.get_json()
+	json = {}
 	if LEADER_SYSTEM:
 		return open_account(json)
 	else:

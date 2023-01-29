@@ -6,13 +6,13 @@ if [ -z "$project_id" ]; then
   exit 1
 fi
 
-count=$1
-leader_system=$2
-if [ -z "$count" ]; then
-  count=7
-fi
+leader_system=$1
+count=$2
 if [ -z "$leader_system" ]; then
   leader_system=True
+fi
+if [ -z "$count" ]; then
+  count=7
 fi
 
 echo "Generating kubernetes resources from templates..."
