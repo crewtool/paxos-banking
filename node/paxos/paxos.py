@@ -3,6 +3,7 @@ import aiohttp
 from quart import Quart, abort, jsonify, request
 import os
 from random import uniform
+import subprocess
 import sys
 
 app = Quart(__name__)
@@ -123,6 +124,11 @@ async def post(session, url, **kwargs):
 def eprint(*args, **kwargs):
 	if DEBUG:
 		print(*args, file=sys.stderr, **kwargs)
+
+@app.route("/shutdown", methods=["POST"])
+async def handle_shutdown():
+	subprocess.run(["pkill", "gunicorn"])
+	return ""
 
 if __name__ == "__main__":
 	app.run(debug=True)

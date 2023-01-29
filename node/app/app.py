@@ -271,8 +271,9 @@ def elect_new_leader():
 
 @app.route("/shutdown", methods=["POST"])
 def shutdown():
+	requests.post(f"{PAXOS_HOST}/shutdown")
 	subprocess.run(["pkill", "gunicorn"])
-	return 'Server shutting down...'
+	return "Server shutting down..."
 
 initialize()
 if __name__ == "__main__":
