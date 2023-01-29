@@ -120,7 +120,7 @@ Response: 'Server shutting down...'"
 - prober.py - file run by prober microservice
 - shutdown.py - file run by shutdown microservice
 - requirements.txt - python list of pip requirements 
-- infra.sh - script for deploying service
+- infra-*.sh - scripts for deploying service
 - node-build.yaml - yaml configuration for GCP how to build banking node container
 - prober-build.yaml - yaml configuration for GCP how to build prober container
 - Dockerfile_node - dockerfile for banking container
@@ -150,7 +150,8 @@ jinja2 - the command line tool for creating files from jinja2 templates. Used fo
 ```bash
 gcloud auth login 
 ./infra-init.sh <OPTIONAL project_id>
-./infra.sh
+./infra-build.sh
+./infra-run.sh
 ```
 
 ### Teardown

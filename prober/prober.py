@@ -1,6 +1,7 @@
 import google.auth
 from google.cloud import firestore
 from kubernetes import client, config
+import os
 import requests
 from requests import Timeout, RequestException, ConnectionError
 import time
@@ -9,6 +10,7 @@ LEADER_SERVICE_NAME = "node-app-leader"
 LOADBALANCER_SERVICE_NAME = "node-app-loadbalancer"
 NAMESPACE = "default"
 HEALTHCHECK_INTERVAL = 30
+LEADER_SYSTEM = bool(os.environ["LEADER_SYSTEM"])
 
 round_id = -1
 
@@ -32,10 +34,12 @@ def update_selector(selector, service_name, namespace):
 	service.spec.selector = new_selector
 	client_v1.patch_namespaced_service(service_name, namespace, service)
 
-def run_paxos():
+def healthcheck_error():
+	if not LEADER_SYSTEM:
+		return
 	global round_id
+	round_id += 1
 	while True:
-		round_id += 1
 		try:
 			response = requests.post('http://' + LOADBALANCER_SERVICE_NAME + '/elect_new_leader', json={"round_id": round_id}, timeout=60)
 		except Timeout:
@@ -48,20 +52,24 @@ def run_paxos():
 	return str(selector_num)
 
 def healthcheck():
+	if LEADER_SYSTEM:
+		address = "http://" + LEADER_SERVICE_NAME + "/add_money"
+	else:
+		address = "http://" + LOADBALANCER_SERVICE_NAME + "/add_money"
 	while True:
 		try:
-			response = requests.post('http://' + LEADER_SERVICE_NAME + '/add_money', json={"account_id": "prober", "amount": 1}, timeout=5)
+			response = requests.post(address, json={"account_id": "prober", "amount": 1}, timeout=5)
 		except Timeout:
-			run_paxos()
+			healthcheck_error()
 			return "Timeout has been raised"
 		except ConnectionError:
-			run_paxos()
+			healthcheck_error()
 			return "Connection error"
 		except RequestException:
 			time.sleep(1)
 			continue
 		if response.status_code != 200:
-			run_paxos()
+			healthcheck_error()
 			return "Error response status code"
 		break
 	return "Health checking..."

@@ -30,6 +30,10 @@ spec:
               value: /var/secrets/google/key.json
             - name: NODE_ID
               value: "{{ number }}"
+            - name: PAXOS_PORT
+              value: "8000"
+            - name: LEADER_SYSTEM
+              value: "{{ leader_system }}"
           volumeMounts:
             - name: google-cloud-key
               mountPath: /var/secrets/google

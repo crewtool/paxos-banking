@@ -12,26 +12,28 @@ PAXOS_PREFIX = "node-paxos-"
 NODES = [PAXOS_PREFIX + str(i) for i in range(1, NODES_COUNT + 1)]
 QUORUM = NODES_COUNT // 2 + 1
 GENERAL_TIMEOUT = 5.
+DEBUG = bool(os.environ.get("DEBUG"))
 
-round_id = -1
-leader_election = None
+paxoses = {}
 
-class LeaderElection:
-	def __init__(self, round_id, node_id, general_timeout):
+class Paxos:
+	def __init__(self, round_id, general_timeout):
 		self.timeout = general_timeout
-		self.node_id = node_id
 		self.round_id = round_id
 		self.ignored_ids = 0
 		self.accepted = None
+		self.consensus = None
 
-	async def propose_self(self):
-		proposal_id = self.node_id - NODES_COUNT
+	async def propose(self, value):
+		if self.consensus:
+			return jsonify(self.consensus)
+		proposal_id = NODE_ID - NODES_COUNT
 		while True:
 			proposal_id += NODES_COUNT
 			proposal = {"round_id": self.round_id, "proposal_id": proposal_id}
 			async with aiohttp.ClientSession() as session:
 				promises = await asyncio.gather(*[
-					post(session, "http://" + node + "/leader_proposal", json=proposal, timeout=self.timeout)
+					post(session, "http://" + node + "/paxos_proposal", json=proposal, timeout=self.timeout)
 					for node in NODES
 				])
 				promises = list(filter(lambda x: x, promises))
@@ -40,16 +42,16 @@ class LeaderElection:
 					continue
 
 				accepted_id = -1
-				accepted_node = self.node_id
+				accepted_value = value
 				for promise in promises:
 					accepted = promise["accepted"]
 					if accepted is not None:
 						if accepted["id"] > accepted_id:
 							accepted_id = accepted["id"]
-							accepted_node = accepted["node"]
-				accept_request = {"round_id": self.round_id, "proposal_id": proposal_id, "node_id": accepted_node}
+							accepted_value = accepted["value"]
+				accept_request = {"round_id": self.round_id, "proposal_id": proposal_id, "value": accepted_value}
 				accepts = await asyncio.gather(*[
-					post(session, "http://" + node + "/leader_request", json=accept_request, timeout=self.timeout)
+					post(session, "http://" + node + "/paxos_request", json=accept_request, timeout=self.timeout)
 					for node in NODES
 				])
 				accepts = list(filter(lambda x: x, accepts))
@@ -57,7 +59,9 @@ class LeaderElection:
 				if len(accepts) < QUORUM:
 					continue
 
-				return jsonify(accepted_node)
+				self.accepted = {"id": self.ignored_ids, "value": accepted_value}
+				self.consensus = accepted_value
+				return jsonify(accepted_value)
 
 	async def handle_proposal(self, proposal_id):
 		if proposal_id < self.ignored_ids:
@@ -67,45 +71,37 @@ class LeaderElection:
 		eprint(f"handle_proposal {promise}")
 		return promise
 
-	async def handle_request(self, proposal_id, node_id):
+	async def handle_request(self, proposal_id, value):
 		if proposal_id < self.ignored_ids:
 			return jsonify(None)
-		self.accepted = {"id": proposal_id, "node": node_id}
+		self.accepted = {"id": proposal_id, "value": value}
 		eprint(f"handle_request {True}")
 		return jsonify(True)
 
-@app.route("/elect_new_leader", methods=["POST"])
-async def elect_new_leader():
-	global leader_election
+@app.route("/paxos_new", methods=["POST"])
+async def handle_new():
 	json = await request.get_json()
-	eprint(f"elect_new_leader {json['round_id']}")
-	get_leader_election(json["round_id"])
-	return await leader_election.propose_self()
+	eprint(f"paxos_new {json['round_id']} {json['value']}")
+	paxos = get_paxos(json["round_id"])
+	value = json["value"]
+	return await paxos.propose(value)
 
-@app.route("/leader_proposal", methods=["POST"])
+@app.route("/paxos_proposal", methods=["POST"])
 async def handle_proposal():
-	global leader_election
 	json = await request.get_json()
-	eprint(f"leader_proposal {json['round_id']} {json['proposal_id']}")
-	get_leader_election(json["round_id"])
-	return await leader_election.handle_proposal(json["proposal_id"])
+	eprint(f"paxos_proposal {json['round_id']} {json['proposal_id']}")
+	paxos = get_paxos(json["round_id"])
+	return await paxos.handle_proposal(json["proposal_id"])
 
-@app.route("/leader_request", methods=["POST"])
+@app.route("/paxos_request", methods=["POST"])
 async def handle_request():
-	global leader_election
 	json = await request.get_json()
-	eprint(f"leader_request {json['round_id']} {json['proposal_id']} {json['node_id']}")
-	get_leader_election(json["round_id"])
-	return await leader_election.handle_request(json["proposal_id"], json["node_id"])
+	eprint(f"paxos_request {json['round_id']} {json['proposal_id']} {json['value']}")
+	paxos = get_paxos(json["round_id"])
+	return await paxos.handle_request(json["proposal_id"], json["value"])
 
-def get_leader_election(new_round_id):
-	global round_id
-	global leader_election
-	if round_id > new_round_id:
-		abort(409)
-	elif round_id < new_round_id:
-		round_id = new_round_id
-		leader_election = LeaderElection(round_id, NODE_ID, GENERAL_TIMEOUT)
+def get_paxos(new_round_id):
+	return paxoses.setdefault(new_round_id, Paxos(new_round_id, GENERAL_TIMEOUT))
 
 async def post(session, url, **kwargs):
 	try:
@@ -117,7 +113,8 @@ async def post(session, url, **kwargs):
 		pass
 
 def eprint(*args, **kwargs):
-	print(*args, file=sys.stderr, **kwargs)
+	if DEBUG:
+		print(*args, file=sys.stderr, **kwargs)
 
 if __name__ == "__main__":
-	app.run()
+	app.run(debug=True)

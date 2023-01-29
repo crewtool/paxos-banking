@@ -17,7 +17,7 @@ steps:
 - name: "gcr.io/cloud-builders/docker"
   args:
   - "build"
-  - "--tag=europe-west2-docker.pkg.dev/$PROJECT_ID/banking-repo/shutdown"
+  - "--tag=europe-central2-docker.pkg.dev/$PROJECT_ID/banking-repo/shutdown"
   - "shutdown"
 images:
 - "europe-central2-docker.pkg.dev/$PROJECT_ID/banking-repo/node-app"

@@ -6,15 +6,20 @@ if [ -z "$project_id" ]; then
   exit 1
 fi
 
-echo "Building images..."
-gcloud builds submit --config build.yaml .
+count=$1
+leader_system=$2
+if [ -z "$count" ]; then
+  count=7
+fi
+if [ -z "$leader_system" ]; then
+  leader_system=True
+fi
 
-count=3
 echo "Generating kubernetes resources from templates..."
 for i in $(seq 1 $count); do
-  jinja2 node/deployment.tmpl -D project_id=$project_id -D number=$i -D count=$count > k8s/node-$i.yaml
+  jinja2 node/deployment.tmpl -D project_id=$project_id -D number=$i -D count=$count -D leader_system=$leader_system > k8s/node-$i.yaml
 done
-jinja2 prober/deployment.tmpl -D project_id=$project_id -D number=$i -D count=$count > k8s/prober.yaml
+jinja2 prober/deployment.tmpl -D project_id=$project_id -D number=$i -D count=$count -D leader_system=$leader_system > k8s/prober.yaml
 jinja2 shutdown/deployment.tmpl -D project_id=$project_id > k8s/shutdown.yaml
 
 echo "Creating K8s resources..."
