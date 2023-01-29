@@ -7,10 +7,11 @@ import sys
 
 app = Quart(__name__)
 
+PORT = os.environ["PORT"]
 NODE_ID = int(os.environ["NODE_ID"])
 NODES_COUNT = int(os.environ["NODES_COUNT"])
-PAXOS_PREFIX = "node-paxos-"
-NODES = [PAXOS_PREFIX + str(i) for i in range(1, NODES_COUNT + 1)]
+NODE_PREFIX = "node-"
+NODES = [NODE_PREFIX + str(i) + ":" + PORT for i in range(1, NODES_COUNT + 1)]
 QUORUM = NODES_COUNT // 2 + 1
 GENERAL_TIMEOUT = 5.
 BACKOFF_BASE = 2.

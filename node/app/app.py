@@ -3,12 +3,17 @@ import google.auth
 from google.cloud import firestore
 import os
 import requests
+from requests import Timeout, RequestException, ConnectionError
 import subprocess
 import uuid
 
 app = Flask(__name__)
 
+PORT = os.environ["PORT"]
 NODE_ID = int(os.environ["NODE_ID"])
+NODES_COUNT = int(os.environ["NODES_COUNT"])
+NODE_PREFIX = "node-"
+OTHER_NODES = [NODE_PREFIX + str(i) + ":" + PORT for i in range(1, NODES_COUNT + 1) if i != NODE_ID]
 PAXOS_PORT = int(os.environ["PAXOS_PORT"])
 PAXOS_HOST = f"http://localhost:{PAXOS_PORT}"
 LEADER_SYSTEM = bool(os.environ["LEADER_SYSTEM"])
@@ -198,7 +203,11 @@ def banking_operation(operation):
 		applied_operation = res.json()
 		response = do_banking_operation(operation_id, applied_operation["operation"])
 		if applied_operation["uuid"] == uuid:
-			#TODO: inform all
+			for node in OTHER_NODES:
+				try:
+					requests.post("http://" + node + "/learn_banking_operation", json={"operation_id": operation_id, "operation": operation}, timeout = 5)
+				except Timeout | RequestException | ConnectionError:
+					pass
 			break
 	return jsonify(response)
 

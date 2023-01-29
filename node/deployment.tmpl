@@ -24,14 +24,16 @@ spec:
           ports:
             - containerPort: 8080
           env:
-            - name: PORT
-              value: "8080"
             - name: GOOGLE_APPLICATION_CREDENTIALS
               value: /var/secrets/google/key.json
-            - name: NODE_ID
-              value: "{{ number }}"
+            - name: PORT
+              value: "8080"
             - name: PAXOS_PORT
               value: "8000"
+            - name: NODE_ID
+              value: "{{ number }}"
+            - name: NODES_COUNT
+              value: "{{ count }}"
             - name: LEADER_SYSTEM
               value: "{{ leader_system }}"
           volumeMounts:
@@ -52,12 +54,14 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: node-paxos-{{ number }}
+  name: node-{{ number }}
 spec:
   selector:
     app: node
     id: "{{ number }}"
   ports:
-    - port: 80
+    - port: 8080
+      targetPort: 8080
+    - port: 8000
       targetPort: 8000
 ---
