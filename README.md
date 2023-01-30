@@ -212,8 +212,7 @@ The default settings are: 1 user, 60 second of test, 0 delay between requests.
 
 ### Results
 The following plots show latency time for the requests.  
-As we can see leaderless solution is much faster, as the solution with
-leader requires communications and agreement between the
+As we can see the solution with the leader is much faster, because the leaderless solution requires communications and agreement between the
 majority of the nodes after every request.
 
 ![Latency](./stress-test/latency_plot.png) ![Boxplot_with_leader](./stress-test/boxplot_with_leader.png) ![Boxplot_leaderless](./stress-test/boxplot_leaderless.png)
