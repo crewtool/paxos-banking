@@ -200,3 +200,20 @@ gcloud container clusters delete banking-cluster --region europe-central2
 gcloud artifacts repositories delete banking-repo --project=<PROJECT_ID> --location europe-central2
 ```
 Manually delete firestore "account" collections.
+
+
+## Stress-tests
+Stress tests were performed on europe-west2 server, due to unavailability of europe-central2.
+
+To run tests you first need to run cluster and open the account.  
+Then download Apache JMeter, open stress-test.jmx, fill IP adress and account_id in HTTP Request 'Add money' and run the tests.  
+If you want results saved as csv file add Filename to Aggregate Report.  
+The default settings are: 1 user, 60 second of test, 0 delay between requests.
+
+### Results
+The following plots show latency time for the requests.  
+As we can see leaderless solution is much faster, as the solution with
+leader requires communications and agreement between the
+majority of the nodes after every request.
+
+![Latency](./stress-test/latency_plot.png) ![Boxplot_with_leader](./stress-test/boxplot_with_leader.png) ![Boxplot_leaderless](./stress-test/boxplot_leaderless.png)

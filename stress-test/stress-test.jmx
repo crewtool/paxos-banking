@@ -33,18 +33,18 @@
               <elementProp name="" elementType="HTTPArgument">
                 <boolProp name="HTTPArgument.always_encode">false</boolProp>
                 <stringProp name="Argument.value">{&#xd;
-    &quot;account_id&quot;: &quot;8b6c4714-98ee-4382-a11e-da57209d3d80&quot;,&#xd;
+    &quot;account_id&quot;: &quot;e55a0562-cb2c-4f2b-a86e-0bdb3db146d7&quot;,&#xd;
     &quot;amount&quot;: 1 &#xd;
  }</stringProp>
                 <stringProp name="Argument.metadata">=</stringProp>
               </elementProp>
             </collectionProp>
           </elementProp>
-          <stringProp name="HTTPSampler.domain">35.246.60.204</stringProp>
+          <stringProp name="HTTPSampler.domain">34.89.81.227</stringProp>
           <stringProp name="HTTPSampler.port"></stringProp>
           <stringProp name="HTTPSampler.protocol"></stringProp>
           <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-          <stringProp name="HTTPSampler.path">/add_money</stringProp>
+          <stringProp name="HTTPSampler.path">/deposit_money</stringProp>
           <stringProp name="HTTPSampler.method">POST</stringProp>
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -172,7 +172,7 @@
                 <connectTime>true</connectTime>
               </value>
             </objProp>
-            <stringProp name="filename"></stringProp>
+            <stringProp name="filename">/home/krzysztof/Desktop/IRIO/paxos-banking-2/stress-test/results_leaderless</stringProp>
           </ResultCollector>
           <hashTree/>
         </hashTree>
